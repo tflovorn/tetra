@@ -1,0 +1,6 @@
+__pycache__
+*.swp
+*.pyc
+build
+dist
+tetra.egg-info
