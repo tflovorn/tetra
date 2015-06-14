@@ -46,7 +46,7 @@ def DosContrib(E, tetra, num_tetra, Eks, band_index):
     elif E2 < E < E3:
         fac = num_tetra / ((E3 - E1)*(E4 - E1))
         elin = 3*(E2 - E1) + 6*(E - E2)
-        esq = -3*(((E3 - E1) + (E4 - E2))/((E3 - E2)*(E4 - E2)*(E4 - E2))) * (E - E2)**2
+        esq = -3*(((E3 - E1) + (E4 - E2))/((E3 - E2)*(E4 - E2))) * (E - E2)**2
         return fac * (elin + esq)
     elif E3 < E < E4:
         return num_tetra * 3*(E4 - E)**2/((E4 - E1)*(E4 - E2)*(E4 - E3))
