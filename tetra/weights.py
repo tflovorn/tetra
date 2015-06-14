@@ -1,6 +1,6 @@
 from dos import DosContrib
 
-def Weights(E_Fermi, submesh, tetras, Eks):
+def Weights(E_Fermi, tetras, Eks):
     '''Return a list in which each element is a list of integration weights.
     The first index for the returned list specifies a band index, and the
     second list specifies a k-point index; i.e. the returned list
@@ -10,9 +10,6 @@ def Weights(E_Fermi, submesh, tetras, Eks):
 
     E_Fermi = Fermi energy of the system.
 
-    submesh = a list of k-points covering the Brillouin zone, determined as
-    described in BJA94 Section III.
-
     tetras = a list of tuples of the form (kN1, kN2, kN3, kN4) denoting the
     vertices of tetrahedra to include in the summation, where the kN's are
     indices of submesh (i.e. submesh[kN1] = k1, etc.). The tetrahedra must be
@@ -21,12 +18,28 @@ def Weights(E_Fermi, submesh, tetras, Eks):
     Eks = a list in which each element is a sorted list of eigenstate energies
     E_n(k), with k being the k-point at the corresponding element of submesh
     (i.e. Eks[kN][band_index] = E_n(k)).
-
-    bandIndex = the band index n to consider, corresponding to n in E_n(k).
     '''
-    pass
+    num_bands = len(Eks[0])
+    num_ks = len(Eks)
+    num_tetra = len(tetras)
+    # Initialize weights to 0.
+    ws = []
+    for band_index in range(num_bands):
+        ws.append([])
+        for k_index in range(num_ks):
+            ws[band_index].append(0.0)
+    # Calculate weights.
+    for tet in tetras:
+        for band_index in range(num_bands):
+            # Get contributions to ws from this tetrahedron and band.
+            tb_ws = WeightContrib(E_Fermi, tet, num_tetra, Eks, band_index)
+            # Add this tetrahedron's contributions to the associated k-points.
+            for i, k_index in enumerate(tet):
+                ws[band_index][k_index] += tb_ws[i]
 
-def WeightContrib(E_Fermi, submesh, tetra, num_tetra, Eks, band_index):
+    return ws
+
+def WeightContrib(E_Fermi, tetra, num_tetra, Eks, band_index):
     '''Return the specified tetrahedron's contribution to the integration
     weights at the k-points of the tetrahedron's vertices; i.e. return
     a list with elements w_{bandIndex, kN, tetra}, where the elements of the
@@ -35,9 +48,6 @@ def WeightContrib(E_Fermi, submesh, tetra, num_tetra, Eks, band_index):
     as described in BJA94 Appendix B and Section V.
 
     E_Fermi = Fermi energy of the system.
-
-    submesh = a list of k-points covering the Brillouin zone, determined as
-    described in BJA94 Section III.
 
     tetra = a tuple of the form (kN1, kN2, kN3, kN4) denoting the
     vertices of a tetrahedron to include in the Brillouin zone summation,
