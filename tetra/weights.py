@@ -17,13 +17,14 @@ def Weights(E_Fermi, submesh, tetras, Eks):
     constructed as described in BJA94 Section III.
 
     Eks = a list in which each element is a sorted list of eigenstate energies
-    E_n(k), with k being the k-point at the corresponding element of submesh.
+    E_n(k), with k being the k-point at the corresponding element of submesh
+    (i.e. Eks[kN][band_index] = E_n(k)).
 
     bandIndex = the band index n to consider, corresponding to n in E_n(k).
     '''
     pass
 
-def WeightContrib(E_Fermi, submesh, tetra, Eks, kN, bandIndex):
+def WeightContrib(E_Fermi, submesh, tetra, num_tetra, Eks, kN, band_index):
     '''Return the specified tetrahedron's contribution to the integration
     weight w_{bandIndex, kN}.
     The calculation of w_{nj} is implemented as described in BJA94 Appendix B
@@ -39,10 +40,14 @@ def WeightContrib(E_Fermi, submesh, tetra, Eks, kN, bandIndex):
     where the kN's are indices of submesh (i.e. submesh[kN1] = k1, etc.).
     The tetrahedra must be constructed as described in BJA94 Section III.
 
-    Eks = a list in which each element is a sorted list of eigenstate energies
-    E_n(k), with k being the k-point at the corresponding element of submesh.
+    num_tetra = total number of tetrahedra in the full Brillouin zone.
+    Equal to (volume of tetrahedron) / (volume of full BZ).
 
-    bandIndex = the band index n to consider, corresponding to n in E_n(k).
+    Eks = a list in which each element is a sorted list of eigenstate energies
+    E_n(k), with k being the k-point at the corresponding element of submesh
+    (i.e. Eks[kN][band_index] = E_n(k)).
+
+    band_index = the band index n to consider, corresponding to n in E_n(k).
     '''
     if kN not in tetra:
         return 0.0
