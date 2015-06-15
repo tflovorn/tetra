@@ -52,7 +52,7 @@ def Get_k_Orig(k_opt, G_order, G_neg):
     return k
 
 def GetRopt(R, G_order, G_neg):
-    '''Return the value of Ropt corresponding to G_order and G_neq.
+    '''Return the value of Ropt corresponding to G_order and G_neg.
 
     The value of G_order is drawn from the permutations of (0, 1, 2) and
     indicates the optimal permutation of the reciprocal lattice vectors,
@@ -72,7 +72,8 @@ def MakeEks(Efn, submesh, G_order=None, G_neg=None):
     element of submesh (i.e. Eks[kN][band_index] = E_n(k)).
 
     Efn = a function E(k) which returns a list of the band energies at the
-    Brillouin zone point k; k is expressed in the reciprocal lattice basis.
+    Brillouin zone point k, with the returned list sorted in ascending order;
+    k is expressed in the reciprocal lattice basis.
 
     submesh = a list of k-points covering the Brillouin zone, determined as
     described in BJA94 Section III.
@@ -89,6 +90,41 @@ def MakeEks(Efn, submesh, G_order=None, G_neg=None):
         k_orig = k
         if G_order != None and G_neg != None:
             k_orig = Get_k_orig(k, G_order, G_neg)
-        Es = sorted(Efn(k_orig))
+        Es = Efn(k_orig)
+        _check_sort(Es)
         Eks.append(Es)
     return Eks
+
+def _check_sort(Es):
+    for i, E in enumerate(Es):
+        if i > 0 and Es[i] < Es[i-1]:
+            raise ValueError("Energies returned by Efn not sorted.")
+
+def MakeXks(Xfn, submesh, G_order=None, G_neg=None):
+    '''Generate Xks, a list in which each element is a list of matrix elements
+    X_n(k), with k being the k-point at the corresponding element of submesh
+    (i.e. Eks[kN][band_index] = E_n(k)).
+
+    Xfn = a function X(k) which returns a list of the values of the matrix
+    elements of the operator X at k; the returned values are ordered in the
+    same way as the band energies and k is expressed in the reciprocal
+    lattice basis.
+
+    submesh = a list of k-points covering the Brillouin zone, determined as
+    described in BJA94 Section III.
+
+    The value of G_order is drawn from the permutations of (0, 1, 2) and
+    indicates the optimal permutation of the reciprocal lattice vectors,
+    when combined with G_neg which indicates whether the corresponding
+    reciprocal lattice vector is negated.
+    Concretely, R_opt[o0, :] = G_neg[0]*R[0, :] and similarly for R[1, :]
+    and R[2, :].
+    '''
+    Xks = []
+    for k in submesh:
+        k_orig = k
+        if G_order != None and G_neg != None:
+            k_orig = Get_k_orig(k, G_order, G_neg)
+        Xs = Xfn(k_orig)
+        Xks.append(Xs)
+    return Xks
