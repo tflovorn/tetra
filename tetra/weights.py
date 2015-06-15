@@ -1,4 +1,4 @@
-from dos import DosContrib
+from tetra.dos import DosContrib
 
 def Weights(E_Fermi, tetras, Eks):
     '''Return a list in which each element is a list of integration weights.
