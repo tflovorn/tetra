@@ -69,7 +69,7 @@ def WeightContrib(E_Fermi, tetra, num_tetra, Eks, band_index):
         for i in range(4):
             ws[i] = 0.0
     elif E1 < E_Fermi < E2:
-        C = (num_tetra / 4) * (E_Fermi - E1)**3 / ((E2 - E1)*(E3 - E1)*(E4 - E1))
+        C = (1 / (4*num_tetra)) * (E_Fermi - E1)**3 / ((E2 - E1)*(E3 - E1)*(E4 - E1))
         ws[0] = C * (4 - (E_Fermi - E1)*(1/(E2 - E1) + 1/(E3 - E1) + 1/(E4 - E1)))
         ws[1] = C * (E_Fermi - E1) / (E2 - E1)
         ws[2] = C * (E_Fermi - E1) / (E3 - E1)
@@ -81,15 +81,15 @@ def WeightContrib(E_Fermi, tetra, num_tetra, Eks, band_index):
         ws[2] = (C1 + C2)*(E_Fermi - E1)/(E3 - E1) + (C2 + C3)*(E_Fermi - E2)/(E3 - E2)
         ws[3] = (C1 + C2 + C3)*(E_Fermi - E1)/(E4 - E1) + C3*(E_Fermi - E2)/(E4 - E2)
     elif E3 < E_Fermi < E4:
-        C = (num_tetra / 4) * (E4 - E_Fermi)**3 / ((E4 - E1)*(E4 - E2)*(E4 - E3))
-        ws[0] = (num_tetra / 4) - C*(E4 - E_Fermi)/(E4 - E1)
-        ws[1] = (num_tetra / 4) - C*(E4 - E_Fermi)/(E4 - E2)
-        ws[2] = (num_tetra / 4) - C*(E4 - E_Fermi)/(E4 - E3)
-        ws[3] = (num_tetra / 4) - C*(4 - (1/(E4 - E1) + 1/(E4 - E2) + 1/(E4 - E3))*(E4 - E_Fermi))
+        C = (1 / (4*num_tetra)) * (E4 - E_Fermi)**3 / ((E4 - E1)*(E4 - E2)*(E4 - E3))
+        ws[0] = (1 / (4*num_tetra)) - C*(E4 - E_Fermi)/(E4 - E1)
+        ws[1] = (1 / (4*num_tetra)) - C*(E4 - E_Fermi)/(E4 - E2)
+        ws[2] = (1 / (4*num_tetra)) - C*(E4 - E_Fermi)/(E4 - E3)
+        ws[3] = (1 / (4*num_tetra)) - C*(4 - (1/(E4 - E1) + 1/(E4 - E2) + 1/(E4 - E3))*(E4 - E_Fermi))
     else:
         # E_Fermi >= E4
         for i in range(4):
-            ws[i] = num_tetra / 4
+            ws[i] = 1 / (4*num_tetra)
 
     dws = _CurvatureCorrection(E_Fermi, tetra, num_tetra, Eks, band_index, (E1, E2, E3, E4))
     for i in range(4):
@@ -103,13 +103,13 @@ def WeightContrib(E_Fermi, tetra, num_tetra, Eks, band_index):
 def _Cs_23(E_Fermi, num_tetra, E1, E2, E3, E4):
     '''Return coefficients C1, C2, C3 for E2 < E_Fermi < E3.
     '''
-    C1 = (num_tetra / 4) * (E_Fermi - E1)**2 / ((E4 - E1)*(E3 - E1))
+    C1 = (1 / (4*num_tetra)) * (E_Fermi - E1)**2 / ((E4 - E1)*(E3 - E1))
 
-    C2_num = (num_tetra / 4) * (E_Fermi - E1)*(E_Fermi - E2)*(E3 - E_Fermi)
+    C2_num = (1 / (4*num_tetra)) * (E_Fermi - E1)*(E_Fermi - E2)*(E3 - E_Fermi)
     C2_denom = (E4 - E1)*(E3 - E2)*(E3 - E1)
     C2 = C2_num / C2_denom
 
-    C3_num = (num_tetra / 4) * (E_Fermi - E2)**2 * (E4 - E_Fermi)
+    C3_num = (1 / (4*num_tetra)) * (E_Fermi - E2)**2 * (E4 - E_Fermi)
     C3_denom = (E4 - E2)*(E3 - E2)*(E4 - E1)
     C3 = C3_num / C3_denom
 

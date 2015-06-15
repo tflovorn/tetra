@@ -44,17 +44,17 @@ def NumStatesContrib(E, tetra, num_tetra, Eks, band_index):
     if E <= E1:
         return 0.0
     elif E1 < E < E2:
-        return num_tetra * (E - E1)**3 / ((E2 - E1)*(E3 - E1)*(E4 - E1))
+        return (1/num_tetra) * (E - E1)**3 / ((E2 - E1)*(E3 - E1)*(E4 - E1))
     elif E2 < E < E3:
-        fac = num_tetra / ((E3 - E1)*(E4 - E1))
+        fac = (1/num_tetra) / ((E3 - E1)*(E4 - E1))
         esq = (E2 - E1)**2 + 3*(E2 - E1)*(E - E2) + 3*(E - E2)**2
         ecub = -(((E3 - E1) + (E4 - E2))/((E3 - E2)*(E4 - E2))) * (E - E2)**3
         return fac * (esq + ecub)
     elif E3 < E < E4:
-        return num_tetra * (1 - (E4 - E)**3/((E4 - E1)*(E4 - E2)*(E4 - E3)))
+        return (1/num_tetra) * (1 - (E4 - E)**3/((E4 - E1)*(E4 - E2)*(E4 - E3)))
     else:
         # E >= E4
-        return num_tetra
+        return (1/num_tetra)
 
 def _tetra_Es(tetra, band_index, Eks):
     '''Return a sorted list of the eigenstate energies at the vertices of the

@@ -89,7 +89,7 @@ def MakeEks(Efn, submesh, G_order=None, G_neg=None):
     for k in submesh:
         k_orig = k
         if G_order != None and G_neg != None:
-            k_orig = Get_k_orig(k, G_order, G_neg)
+            k_orig = Get_k_Orig(k, G_order, G_neg)
         Es = Efn(k_orig)
         _check_sort(Es)
         Eks.append(Es)

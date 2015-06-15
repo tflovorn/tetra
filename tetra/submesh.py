@@ -22,7 +22,7 @@ def MakeSubmesh(n):
             k2 = j*step
             for i in range(n+1):
                 k1 = i*step
-                submesh.append(k1, k2, k3)
+                submesh.append((k1, k2, k3))
     return submesh
 
 def MakeTetra(n):

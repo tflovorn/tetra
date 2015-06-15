@@ -30,20 +30,20 @@ def SumFn(n, Efn, Xfn, R, num_electrons, tolerance=None):
     '''
     # Calculate the expectation value for a particular n.
     def doSum(this_n):
-        G_order, G_neg, submesh, Eks, ws = _sum_setup(n, Efn, R, num_electrons)
+        G_order, G_neg, submesh, Eks, ws = _sum_setup(this_n, Efn, R, num_electrons)
         # Sample X.
         Xks = MakeXks(Xfn, submesh, G_order, G_neg)
         # Calculate sum.
         result = _SumByWeights(ws, Xks)
         return result, ws
     # Refine n until tolerance is met.
-    return _sum_util_tol(doSum, n, tolerance)
+    return _sum_until_tol(doSum, n, tolerance)
 
 def _sum_setup(n, Efn, R, num_electrons):
     '''Setup for summation common to SumFn and SumEnergy.
     '''
     # Get optimal reciprocal lattice orientation.
-    G_order, G_neg = OptimizeRs(R)
+    G_order, G_neg = OptimizeGs(R)
     # Generate submesh and tetrahedra.
     submesh = MakeSubmesh(n)
     tetras = MakeTetra(n)
@@ -64,7 +64,7 @@ def _sum_until_tol(doSum, n, tolerance):
     while not _sum_finished(result, last_result, tolerance):
         last_result = result
         result, ws = doSum(try_n)
-        try_n = 2*n
+        try_n = 2*try_n
     return result, try_n/2, ws
 
 def _sum_finished(result, last_result, tolerance):
@@ -117,12 +117,12 @@ def SumEnergy(n, Efn, R, num_electrons, tolerance=None):
     '''
     # Calculate the expectation value for a particular n.
     def doSum(this_n):
-        G_order, G_neg, submesh, Eks, ws = _sum_setup(n, Efn, R, num_electrons)
+        G_order, G_neg, submesh, Eks, ws = _sum_setup(this_n, Efn, R, num_electrons)
         # Calculate sum.
         result = _SumByWeights(ws, Eks)
         return result, ws
     # Refine n until tolerance is met.
-    return _sum_util_tol(doSum, n, tolerance)
+    return _sum_until_tol(doSum, n, tolerance)
 
 def SumMesh(weights, n, Xfn, R):
     '''Calculate the expectation value <X> over the Brillouin zone
@@ -146,7 +146,7 @@ def SumMesh(weights, n, Xfn, R):
     (BJA94 Eq. 4).
     '''
     # Get optimal reciprocal lattice orientation.
-    G_order, G_neg = OptimizeRs(R)
+    G_order, G_neg = OptimizeGs(R)
     # Generate submesh.
     submesh = MakeSubmesh(n)
     # Sample X.

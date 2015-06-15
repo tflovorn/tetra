@@ -28,7 +28,7 @@ def FindFermi(num_electrons, tetras, Eks):
 def _minimum_E(Eks):
     minval = None
     for Es_at_k in Eks:
-        for energy in E_at_k:
+        for energy in Es_at_k:
             if minval == None or energy < minval:
                 minval = energy
     return minval
@@ -36,7 +36,7 @@ def _minimum_E(Eks):
 def _maximum_E(Eks):
     maxval = None
     for Es_at_k in Eks:
-        for energy in E_at_k:
+        for energy in Es_at_k:
             if maxval == None or energy > maxval:
                 maxval = energy
     return maxval
