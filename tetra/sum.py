@@ -7,7 +7,8 @@ from tetra.weights import Weights
 def SumFn(n, Efn, Xfn, R, num_electrons, tolerance=None):
     '''Calculate the expectation value of Xfn over the Brillouin zone
     using the tetrahedron method. Returns the expectation value, as well as
-    the integration weights used (for use in additional summations by SumMesh).
+    the submesh density n used to achieve the specified tolerance and the
+    integration weights used (for use in additional summations by SumMesh).
 
     n = Brillouin zone submesh density (the total number of k-points sampled
     is (n+1)**3).
@@ -27,13 +28,16 @@ def SumFn(n, Efn, Xfn, R, num_electrons, tolerance=None):
     of n is repeatedly doubled (starting from the given value) until the
     difference between iterations is less than tolerance.
     '''
-    # TODO - implement tolerance.
-    G_order, G_neg, submesh, Eks, ws = _sum_setup(n, Efn, R, num_electrons)
-    # Sample X.
-    Xks = MakeXks(Xfn, submesh, G_order, G_neg)
-    # Calculate sum.
-    result = SumByWeights(ws, Xks)
-    return result, ws
+    # Calculate the expectation value for a particular n.
+    def doSum(this_n):
+        G_order, G_neg, submesh, Eks, ws = _sum_setup(n, Efn, R, num_electrons)
+        # Sample X.
+        Xks = MakeXks(Xfn, submesh, G_order, G_neg)
+        # Calculate sum.
+        result = _SumByWeights(ws, Xks)
+        return result, ws
+    # Refine n until tolerance is met.
+    return _sum_util_tol(doSum, n, tolerance)
 
 def _sum_setup(n, Efn, R, num_electrons):
     '''Setup for summation common to SumFn and SumEnergy.
@@ -51,7 +55,27 @@ def _sum_setup(n, Efn, R, num_electrons):
     ws = Weights(E_Fermi, tetras, Eks)
     return G_order, G_neg, submesh, Eks, ws
 
-def SumByWeights(weights, Xks):
+def _sum_until_tol(doSum, n, tolerance):
+    last_result = None
+    result, ws = doSum(n)
+    if tolerance == None:
+        return result, n, ws
+    try_n = 2*n
+    while not _sum_finished(result, last_result, tolerance):
+        last_result = result
+        result, ws = doSum(try_n)
+        try_n = 2*n
+    return result, try_n/2, ws
+
+def _sum_finished(result, last_result, tolerance):
+    if last_result == None:
+        return False
+    elif abs(result - last_result) > tolerance:
+        return False
+    else:
+        return True
+
+def _SumByWeights(weights, Xks):
     '''Calculate the expectation value <X> over the Brillouin zone
     using the tetrahedron method, given precalculated (k,n) integration
     weights and sampled values of X_n(k).
@@ -75,7 +99,8 @@ def SumByWeights(weights, Xks):
 def SumEnergy(n, Efn, R, num_electrons, tolerance=None):
     '''Calculate the expectation value of the energy over the Brillouin zone
     using the tetrahedron method. Returns the expectation value, as well as
-    the integration weights used (for use in additional summations by SumMesh).
+    the submesh density n used to achieve the specified tolerance and the
+    integration weights used (for use in additional summations by SumMesh).
 
     n = Brillouin zone submesh density (the total number of k-points sampled
     is (n+1)**3).
@@ -90,11 +115,14 @@ def SumEnergy(n, Efn, R, num_electrons, tolerance=None):
     of n is repeatedly doubled (starting from the given value) until the
     difference between iterations is less than tolerance.
     '''
-    # TODO - implement tolerance.
-    G_order, G_neg, submesh, Eks, ws = _sum_setup(n, Efn, R, num_electrons)
-    # Calculate sum.
-    result = SumByWeights(ws, Xks)
-    return result, ws
+    # Calculate the expectation value for a particular n.
+    def doSum(this_n):
+        G_order, G_neg, submesh, Eks, ws = _sum_setup(n, Efn, R, num_electrons)
+        # Calculate sum.
+        result = _SumByWeights(ws, Eks)
+        return result, ws
+    # Refine n until tolerance is met.
+    return _sum_util_tol(doSum, n, tolerance)
 
 def SumMesh(weights, n, Xfn, R):
     '''Calculate the expectation value <X> over the Brillouin zone
@@ -124,5 +152,5 @@ def SumMesh(weights, n, Xfn, R):
     # Sample X.
     Xks = MakeXks(Xfn, submesh, G_order, G_neg)
     # Calculate sum.
-    result = SumByWeights(ws, Xks)
+    result = _SumByWeights(ws, Xks)
     return result
