@@ -76,6 +76,21 @@ def Get_k_Orig(k_opt, G_order, G_neg):
         k[i] = k_opt[G_order[i]] * G_neg[i]
     return k
 
+def GetRopt(R, G_order, G_neg):
+    '''Return the value of Ropt corresponding to G_order and G_neq.
+    
+    The value of G_order is drawn from the permutations of (0, 1, 2) and
+    indicates the optimal permutation of the reciprocal lattice vectors,
+    when combined with G_neg which indicates whether the corresponding
+    reciprocal lattice vector is negated.
+    Concretely, R_opt[o0, :] = G_neg[0]*R[0, :] and similarly for R[1, :]
+    and R[2, :].
+    '''
+    R_opt = np.zeros((3, 3), dtype=np.float64)
+    for i in range(3):
+        R_opt[G_order[i], :] = G_neg[i]*R[i, :]
+    return R_opt
+
 def MakeEks(Efn, submesh, G_order=None, G_neg=None):
     '''Generate Eks, a list in which each element is a sorted list of
     eigenstate energies E_n(k), with k being the k-point at the corresponding

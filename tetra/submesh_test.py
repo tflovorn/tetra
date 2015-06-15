@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from tetra.submesh import OptimizeGs, Get_k_Orig
+from tetra.submesh import OptimizeGs, Get_k_Orig, GetRopt
 
 class TestOptimizeGs(unittest.TestCase):
     def test_cubic(self):
@@ -14,6 +14,12 @@ class TestOptimizeGs(unittest.TestCase):
         G_order, G_neg = OptimizeGs(Rhex)
         _vec_equal(self, G_order, (0, 1, 2))
         _vec_equal(self, G_neg, (1, -1, 1))
+        
+        k3_to_k6_orig = np.linalg.norm(-Rhex[0, :] + Rhex[1, :] - Rhex[2, :])
+
+        Ropt = GetRopt(Rhex, G_order, G_neg)
+        k3_to_k6_opt = np.linalg.norm(-Ropt[0, :] + Ropt[1, :] - Ropt[2, :])
+        self.assertTrue(k3_to_k6_opt < k3_to_k6_orig)
 
 class TestGet_k_Orig(unittest.TestCase):
     def test_k_no_change(self):
