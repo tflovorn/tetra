@@ -60,5 +60,5 @@ def _submesh_index(n, i, j, k):
 def _submesh_ijk(n, index):
     i = index % (n+1)
     j = ((index % ((n+1)**2)) - i) / (n+1)
-    k = (index - i - (n+1)*j) / (n+1)**2
+    k = (index - i - j*(n+1)) / (n+1)**2
     return i, j, k
