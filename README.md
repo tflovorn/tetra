@@ -4,6 +4,10 @@ This paper is referred to in the documentation of this package as 'BJA94'.
 
 # Installation
 
+Requires scipy and numpy:
+
+    sudo apt-get install python3-scipy
+
 Get setuptools and install using setup.py:
 
     sudo apt-get install python3-setuptools
