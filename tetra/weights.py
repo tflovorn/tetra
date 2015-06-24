@@ -23,11 +23,14 @@ def Weights(E_Fermi, tetras, Eks):
     num_ks = len(Eks)
     num_tetra = len(tetras)
     # Initialize weights to 0.
-    ws = []
+    # Initialize cs for Kahan.
+    ws, cs = [], []
     for band_index in range(num_bands):
         ws.append([])
+        cs.append([])
         for k_index in range(num_ks):
             ws[band_index].append(0.0)
+            cs[band_index].append(0.0)
     # Calculate weights.
     for tet in tetras:
         for band_index in range(num_bands):
@@ -35,7 +38,11 @@ def Weights(E_Fermi, tetras, Eks):
             tb_ws = WeightContrib(E_Fermi, tet, num_tetra, Eks, band_index)
             # Add this tetrahedron's contributions to the associated k-points.
             for i, k_index in enumerate(tet):
-                ws[band_index][k_index] += tb_ws[i]
+                #ws[band_index][k_index] += tb_ws[i]
+                y = tb_ws[i] - cs[band_index][k_index]
+                t = ws[band_index][k_index] + y
+                cs[band_index][k_index] = (t - ws[band_index][k_index]) - y
+                ws[band_index][k_index] = t
 
     return ws
 

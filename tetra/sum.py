@@ -1,8 +1,13 @@
+import sys
 from math import fsum
+import time
 from tetra.ksample import OptimizeGs, MakeEks, MakeXks
 from tetra.submesh import MakeSubmesh, MakeTetra
 from tetra.fermi import FindFermi
 from tetra.weights import Weights
+from tetra.numstates import NumStates
+
+clock_start = None
 
 def SumFn(n, Efn, Xfn, R, num_electrons, tolerance=None):
     '''Calculate the expectation value of Xfn over the Brillouin zone
@@ -47,12 +52,34 @@ def _sum_setup(n, Efn, R, num_electrons):
     # Generate submesh and tetrahedra.
     submesh = MakeSubmesh(n)
     tetras = MakeTetra(n)
+    tetras_size = sys.getsizeof(tetras)
+    for t_i in range(len(tetras)):
+        tetras_size += sys.getsizeof(tetras[t_i])
+    #print("size of tetras = {}".format(str(tetras_size)))
+    #print("size of tetras per submesh cell = {}".format(str(tetras_size / n**3)))
+    submesh_size = sys.getsizeof(submesh)
+    #print("size of submesh = {}".format(str(submesh_size)))
+    #print("size of submesh per submesh cell = {}".format(str(submesh_size / n**3)))
     # Sample E.
     Eks = MakeEks(Efn, submesh, G_order, G_neg)
+    print("In tetra.sum, at n = {} finished submesh sample; time = {}".format(str(n), str(time.time() - clock_start)))
+    Eks_size = sys.getsizeof(Eks)
+    for E_i in range(len(Eks)):
+        Eks_size += sys.getsizeof(Eks[E_i])
+    #print("size of Eks = {}".format(str(Eks_size)))
+    #print("size of Eks per submesh cell = {}".format(str(Eks_size / n**3)))
     # Get Fermi energy by n(E_F) = num_electrons.
     E_Fermi = FindFermi(num_electrons, tetras, Eks)
+    print("In tetra.sum, at n = {} got E_Fermi = {}; time = {}".format(str(n), str(E_Fermi), str(time.time() - clock_start)))
     # Get integration weights.
     ws = Weights(E_Fermi, tetras, Eks)
+    ws_size = sys.getsizeof(ws)
+    for w_i in range(len(ws)):
+        ws_size += sys.getsizeof(ws[w_i])
+    #print("size of ws = {}".format(str(ws_size)))
+    #print("size of ws per submesh cell = {}".format(str(ws_size / n**3)))
+    print(len(ws))
+    print(len(ws[0]))
     return G_order, G_neg, submesh, Eks, ws
 
 def _sum_until_tol(doSum, n, tolerance):
@@ -60,10 +87,12 @@ def _sum_until_tol(doSum, n, tolerance):
     result, ws = doSum(n)
     if tolerance == None:
         return result, n, ws
+    print("In tetra.sum, at n = {} got result = {}; time = {}".format(str(n), str(result), str(time.time() - clock_start)))
     try_n = 2*n
     while not _sum_finished(result, last_result, tolerance):
         last_result = result
         result, ws = doSum(try_n)
+        print("In tetra.sum, at n = {} got result = {}; time = {}".format(str(try_n), str(result), str(time.time() - clock_start)))
         try_n = 2*try_n
     return result, try_n/2, ws
 
@@ -122,6 +151,8 @@ def SumEnergy(n, Efn, R, num_electrons, tolerance=None):
         result = _SumByWeights(ws, Eks)
         return result, ws
     # Refine n until tolerance is met.
+    global clock_start
+    clock_start = time.time()
     return _sum_until_tol(doSum, n, tolerance)
 
 def SumMesh(weights, n, Xfn, R):

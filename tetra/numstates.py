@@ -15,9 +15,14 @@ def NumStates(E, tetras, Eks):
     num_bands = len(Eks[0])
     num_tetra = len(tetras)
     n = 0.0
+    c = 0.0
     for tet in tetras:
         for band_index in range(num_bands):
-            n += NumStatesContrib(E, tet, num_tetra, Eks, band_index)
+            contrib = NumStatesContrib(E, tet, num_tetra, Eks, band_index)
+            y = contrib - c
+            t = n + y
+            c = (t - n) - y
+            n = t
     return n
 
 def NumStatesContrib(E, tetra, num_tetra, Eks, band_index):
