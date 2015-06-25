@@ -38,7 +38,6 @@ def Weights(E_Fermi, tetras, Eks):
             tb_ws = WeightContrib(E_Fermi, tet, num_tetra, Eks, band_index)
             # Add this tetrahedron's contributions to the associated k-points.
             for i, k_index in enumerate(tet):
-                #ws[band_index][k_index] += tb_ws[i]
                 y = tb_ws[i] - cs[band_index][k_index]
                 t = ws[band_index][k_index] + y
                 cs[band_index][k_index] = (t - ws[band_index][k_index]) - y
@@ -75,24 +74,39 @@ def WeightContrib(E_Fermi, tetra, num_tetra, Eks, band_index):
     if E_Fermi <= E1:
         for i in range(4):
             ws[i] = 0.0
-    elif E1 < E_Fermi < E2:
-        C = (1 / (4*num_tetra)) * (E_Fermi - E1)**3 / ((E2 - E1)*(E3 - E1)*(E4 - E1))
-        ws[0] = C * (4 - (E_Fermi - E1)*(1/(E2 - E1) + 1/(E3 - E1) + 1/(E4 - E1)))
-        ws[1] = C * (E_Fermi - E1) / (E2 - E1)
-        ws[2] = C * (E_Fermi - E1) / (E3 - E1)
-        ws[3] = C * (E_Fermi - E1) / (E4 - E1)
-    elif E2 < E_Fermi < E3:
-        C1, C2, C3 = _Cs_23(E_Fermi, num_tetra, E1, E2, E3, E4)
-        ws[0] = C1 + (C1 + C2)*(E3 - E_Fermi)/(E3 - E1) + (C1 + C2 + C3)*(E4 - E_Fermi)/(E4 - E1)
-        ws[1] = C1 + C2 + C3 + (C2 + C3)*(E3 - E_Fermi)/(E3 - E2) + C3*(E4 - E_Fermi)/(E4 - E2)
-        ws[2] = (C1 + C2)*(E_Fermi - E1)/(E3 - E1) + (C2 + C3)*(E_Fermi - E2)/(E3 - E2)
-        ws[3] = (C1 + C2 + C3)*(E_Fermi - E1)/(E4 - E1) + C3*(E_Fermi - E2)/(E4 - E2)
-    elif E3 < E_Fermi < E4:
-        C = (1 / (4*num_tetra)) * (E4 - E_Fermi)**3 / ((E4 - E1)*(E4 - E2)*(E4 - E3))
-        ws[0] = (1 / (4*num_tetra)) - C*(E4 - E_Fermi)/(E4 - E1)
-        ws[1] = (1 / (4*num_tetra)) - C*(E4 - E_Fermi)/(E4 - E2)
-        ws[2] = (1 / (4*num_tetra)) - C*(E4 - E_Fermi)/(E4 - E3)
-        ws[3] = (1 / (4*num_tetra)) - C*(4 - (1/(E4 - E1) + 1/(E4 - E2) + 1/(E4 - E3))*(E4 - E_Fermi))
+    elif E1 <= E_Fermi <= E2:
+        if (E1 == E2):
+            for i  in range(4):
+                ws[i] = 0.0
+        else:
+            C = (1 / (4*num_tetra)) * (E_Fermi - E1)**3 / ((E2 - E1)*(E3 - E1)*(E4 - E1))
+            ws[0] = C * (4 - (E_Fermi - E1)*(1/(E2 - E1) + 1/(E3 - E1) + 1/(E4 - E1)))
+            ws[1] = C * (E_Fermi - E1) / (E2 - E1)
+            ws[2] = C * (E_Fermi - E1) / (E3 - E1)
+            ws[3] = C * (E_Fermi - E1) / (E4 - E1)
+    elif E2 <= E_Fermi <= E3:
+        if E2 == E3:
+            C1 = (1 / (4*num_tetra)) * (E_Fermi - E1) * (E_Fermi - E1) / ((E4 - E1) * (E3 - E1))
+            ws[0] = C1 + C1*(E4 - E_Fermi)/(E4 - E1)
+            ws[1] = C1
+            ws[2] = C1*(E_Fermi - E1)/(E3 - E1)
+            ws[3] = C1*(E_Fermi - E1)/(E4 - E1)
+        else:
+            C1, C2, C3 = _Cs_23(E_Fermi, num_tetra, E1, E2, E3, E4)
+            ws[0] = C1 + (C1 + C2)*(E3 - E_Fermi)/(E3 - E1) + (C1 + C2 + C3)*(E4 - E_Fermi)/(E4 - E1)
+            ws[1] = C1 + C2 + C3 + (C2 + C3)*(E3 - E_Fermi)/(E3 - E2) + C3*(E4 - E_Fermi)/(E4 - E2)
+            ws[2] = (C1 + C2)*(E_Fermi - E1)/(E3 - E1) + (C2 + C3)*(E_Fermi - E2)/(E3 - E2)
+            ws[3] = (C1 + C2 + C3)*(E_Fermi - E1)/(E4 - E1) + C3*(E_Fermi - E2)/(E4 - E2)
+    elif E3 <= E_Fermi <= E4:
+        if E3 == E4:
+            for i in range(4):
+                ws[i] = 1 / (4*num_tetra)
+        else:
+            C = (1 / (4*num_tetra)) * (E4 - E_Fermi)**3 / ((E4 - E1)*(E4 - E2)*(E4 - E3))
+            ws[0] = (1 / (4*num_tetra)) - C*(E4 - E_Fermi)/(E4 - E1)
+            ws[1] = (1 / (4*num_tetra)) - C*(E4 - E_Fermi)/(E4 - E2)
+            ws[2] = (1 / (4*num_tetra)) - C*(E4 - E_Fermi)/(E4 - E3)
+            ws[3] = (1 / (4*num_tetra)) - C*(4 - (1/(E4 - E1) + 1/(E4 - E2) + 1/(E4 - E3))*(E4 - E_Fermi))
     else:
         # E_Fermi >= E4
         for i in range(4):
@@ -102,9 +116,9 @@ def WeightContrib(E_Fermi, tetra, num_tetra, Eks, band_index):
     for i in range(4):
         ws[i] += dws[i]
 
-    tet_ws = []
-    for i in i_vals:
-        tet_ws.append(ws[i])
+    tet_ws = [0.0]*4
+    for i_sorted, i_tet in enumerate(i_vals):
+        tet_ws[i_tet] = ws[i_sorted]
     return tet_ws
 
 def _Cs_23(E_Fermi, num_tetra, E1, E2, E3, E4):
