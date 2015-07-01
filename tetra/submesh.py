@@ -25,6 +25,18 @@ def MakeSubmesh(n):
                 submesh.append((k1, k2, k3))
     return submesh
 
+#def IterTetra(n):
+#    '''Iterate through a list containing the tetrahedra dividing the full
+#    Brillouin zone. The number of k-points in all 3 dimensions is given by n+1
+#    (i.e. we require that n1 = n2 = n3); the total number of k-points in the
+#    submesh is (n+1)**3.
+#
+#    The submesh is defined as that returned by MakeSubmesh(n).
+#
+#    Tetrahedra generation is implemented as described in BJA94 Section III.
+#    '''
+#    pass
+
 def MakeTetra(n):
     '''Return a list containing the tetrahedra dividing the full Brillouin
     zone. The number of k-points in all 3 dimensions is given by n+1 (i.e. we
@@ -55,10 +67,10 @@ def MakeTetra(n):
     return tetra
 
 def _submesh_index(n, i, j, k):
-    return i + j*(n+1) + k*(n+1)**2
+    return i + j*(n+1) + k*((n+1)**2)
 
 def _submesh_ijk(n, index):
     i = index % (n+1)
     j = ((index % ((n+1)**2)) - i) / (n+1)
-    k = (index - i - j*(n+1)) / (n+1)**2
+    k = (index - i - j*(n+1)) / ((n+1)**2)
     return i, j, k
