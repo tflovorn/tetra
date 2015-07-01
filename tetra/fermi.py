@@ -1,6 +1,63 @@
 from scipy.optimize import bisect
 from tetra.numstates import NumStates
 
+def FindFermiToTol(n0, Efn, R, num_electrons, tol=None, tetras0=None, Eks0=None):
+    '''Returns the Fermi energy E_F, at which the integrated number of
+    states n(E_F) = num_electrons.
+    Assumes that Efn contains all the electronic states of the system;
+    e.g. for a collinear spin-polarized system, Eks must not contain only
+    up-spins or only down-spins but instead contain all states of both types.
+
+    n0 = initial value for Brillouin zone submesh density (the total number of
+    k-points sampled is (n+1)**3).
+
+    Efn = a function E(k) which returns a list of the band energies at the
+    Brillouin zone point k, with the returned list sorted in ascending order;
+    k is expressed in the reciprocal lattice basis.
+
+    R = a numpy matrix with rows given by the reciprocal lattice vectors.
+
+    tol = if given, accuracy to determine the Fermi energy to; quit if
+            |E_F(n) - E_F(2*n)| < tol.
+
+    tetras0 = pre-determined tetrahedron list at n=n0.
+
+    Eks0 = pre-determined band energy sampled over submesh with n=n0.
+    '''
+    # Get optimal reciprocal lattice orientation.
+    G_order, G_neg = OptimizeGs(R)
+
+    val, old_val = None, None
+    if tetras0 != None and Eks0 != None:
+        val = FindFermi(num_electrons, tetras0, Eks0)
+    else:
+        # Generate submesh and tetrahedra.
+        submesh = MakeSubmesh(n0)
+        tetras = MakeTetra(n0)
+        # Sample E(k).
+        Eks = MakeEks(Efn, submesh, G_order, G_neg)
+        # Get E_F.
+        val = FindFermi(num_electrons, tetras, Eks)
+    print("Got E_Fermi = {} at n = {}".format(val, n0))
+
+    if tol == None:
+        return val
+
+    n = n0
+    while old_val == None || abs(val - old_val) > tol:
+        old_val = val
+        n *= 2
+        # Generate submesh and tetrahedra.
+        submesh = MakeSubmesh(n)
+        tetras = MakeTetra(n)
+        # Sample E(k).
+        Eks = MakeEks(Efn, submesh, G_order, G_neg)
+        # Get E_F.
+        val = FindFermi(num_electrons, tetras, Eks)
+        print("Got E_Fermi = {} at n = {}".format(val, n))
+
+    return val
+
 def FindFermi(num_electrons, tetras, Eks):
     '''Returns the Fermi energy E_F, at which the integrated number of
     states n(E_F) = num_electrons.
@@ -19,6 +76,7 @@ def FindFermi(num_electrons, tetras, Eks):
     '''
     def statecount_error(E):
         count = NumStates(E, tetras, Eks)
+        print("At E = ", E, " count = ", count)
         return count - num_electrons
     emin = _minimum_E(Eks)
     emax = _maximum_E(Eks)
