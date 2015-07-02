@@ -1,5 +1,7 @@
 from scipy.optimize import bisect
 from tetra.numstates import NumStates
+from tetra.ksample import OptimizeGs, MakeEks
+from tetra.submesh import MakeSubmesh, MakeTetra
 
 def FindFermiToTol(n0, Efn, R, num_electrons, tol=None, tetras0=None, Eks0=None):
     '''Returns the Fermi energy E_F, at which the integrated number of
@@ -44,7 +46,7 @@ def FindFermiToTol(n0, Efn, R, num_electrons, tol=None, tetras0=None, Eks0=None)
         return val
 
     n = n0
-    while old_val == None || abs(val - old_val) > tol:
+    while old_val == None or abs(val - old_val) > tol:
         old_val = val
         n *= 2
         # Generate submesh and tetrahedra.
