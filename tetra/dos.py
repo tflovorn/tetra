@@ -26,7 +26,7 @@ def DosValues(Emin, Emax, num_Es, n, Efn, R):
     tetras, Eks = _dos_setup(n, Efn, R)
     # Get D(E) values.
     E_vals = np.linspace(Emin, Emax, num_Es)
-    dos_vals = [0.0]
+    dos_vals = []
     for E in E_vals:
         dos_vals.append(Dos(E, tetras, Eks))
     return dos_vals, E_vals, tetras, Eks
@@ -64,7 +64,7 @@ def DosValuesPerBand(Emin, Emax, num_Es, n, Efn, R):
     tetras, Eks = _dos_setup(n, Efn, R)
     # Get D(E) values.
     E_vals = np.linspace(Emin, Emax, num_Es)
-    dos_vals = [0.0]
+    dos_vals = []
     for E in E_vals:
         dos_vals.append(DosPerBand(E, tetras, Eks))
     return dos_vals, E_vals, tetras, Eks
