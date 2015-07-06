@@ -3,7 +3,7 @@ from tetra.ksample import OptimizeGs, MakeEks
 from tetra.submesh import MakeSubmesh, MakeTetra
 from tetra.numstates import _tetra_Es
 
-def DosValues(Emin, Emax, num_Es, n, Efn, R):
+def DosValuesPerBand(Emin, Emax, num_Es, n, Efn, R):
     '''Return a list of D(E) values giving the density of states at energy E
     summed over all tetrahedra and band indices; E ranges over num_Es equally
     spaced values from Emin to Emax.
@@ -32,10 +32,32 @@ def DosValues(Emin, Emax, num_Es, n, Efn, R):
     Eks = MakeEks(Efn, submesh, G_order, G_neg)
     # Get D(E) values.
     E_vals = np.linspace(Emin, Emax, num_Es)
-    dos_vals = []
+    dos_vals = [0.0]
     for E in E_vals:
-        dos_vals.append(Dos(E, tetras, Eks))
+        dos_vals.append(DosPerBand(E, tetras, Eks))
     return dos_vals, E_vals, tetras, Eks
+
+def DosPerBand(E, tetras, Eks):
+    '''Return a list with elements D_i(E), the density of states at energy E
+    summed over all tetrahedra separated by band index i.
+    The calculation of D_T(E) is implemented as described in BJA94 Appendix C.
+
+    tetras = a list of tuples of the form (kN1, kN2, kN3, kN4) denoting the
+    vertices of tetrahedra to include in the summation, where the kN's are
+    indices of submesh (i.e. submesh[kN1] = k1, etc.). The tetrahedra must be
+    constructed as described in BJA94 Section III.
+
+    Eks = a list in which each element is a sorted list of eigenstate energies
+    E_n(k), with k being the k-point at the corresponding element of submesh
+    (i.e. Eks[kN][band_index] = E_n(k)).
+    '''
+    num_bands = len(Eks[0])
+    num_tetra = len(tetras)
+    Dis = [0.0]*num_bands
+    for tet in tetras:
+        for band_index in range(num_bands):
+            Dis[band_index] += DosContrib(E, tet, num_tetra, Eks, band_index)
+    return Dis
 
 def Dos(E, tetras, Eks):
     '''Return D(E), the density of states at energy E summed over all
