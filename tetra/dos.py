@@ -3,7 +3,7 @@ from tetra.ksample import OptimizeGs, MakeEks
 from tetra.submesh import MakeSubmesh, MakeTetra
 from tetra.numstates import _tetra_Es
 
-def DosValuesPerBand(Emin, Emax, num_Es, n, Efn, R):
+def DosValues(Emin, Emax, num_Es, n, Efn, R):
     '''Return a list of D(E) values giving the density of states at energy E
     summed over all tetrahedra and band indices; E ranges over num_Es equally
     spaced values from Emin to Emax.
@@ -23,6 +23,15 @@ def DosValuesPerBand(Emin, Emax, num_Es, n, Efn, R):
 
     R = a numpy matrix with rows given by the reciprocal lattice vectors.
     '''
+    tetras, Eks = _dos_setup(n, Efn, R)
+    # Get D(E) values.
+    E_vals = np.linspace(Emin, Emax, num_Es)
+    dos_vals = [0.0]
+    for E in E_vals:
+        dos_vals.append(Dos(E, tetras, Eks))
+    return dos_vals, E_vals, tetras, Eks
+
+def _dos_setup(n, Efn, R):
     # Get optimal reciprocal lattice orientation.
     G_order, G_neg = OptimizeGs(R)
     # Generate submesh and tetrahedra.
@@ -30,6 +39,29 @@ def DosValuesPerBand(Emin, Emax, num_Es, n, Efn, R):
     tetras = MakeTetra(n)
     # Sample E(k).
     Eks = MakeEks(Efn, submesh, G_order, G_neg)
+    return tetras, Eks
+
+def DosValuesPerBand(Emin, Emax, num_Es, n, Efn, R):
+    '''Return a list of D_i(E) values giving the density of states at energy E
+    summed over all tetrahedra separated by band index i; E ranges over num_Es
+    equally spaced values from Emin to Emax.
+
+    Also returns the list of energy values used and lists of tetrahedra and
+    E(k) values so that these can be used in further calculations (such as
+    FindFermi()).
+
+    The calculation of D(E) is implemented as described in BJA94 Appendix C.
+
+    n = Brillouin zone submesh density (the total number of k-points sampled
+    is (n+1)**3).
+
+    Efn = a function E(k) which returns a list of the band energies at the
+    Brillouin zone point k, with the returned list sorted in ascending order;
+    k is expressed in the reciprocal lattice basis.
+
+    R = a numpy matrix with rows given by the reciprocal lattice vectors.
+    '''
+    tetras, Eks = _dos_setup(n, Efn, R)
     # Get D(E) values.
     E_vals = np.linspace(Emin, Emax, num_Es)
     dos_vals = [0.0]
