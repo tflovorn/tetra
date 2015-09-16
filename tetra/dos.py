@@ -1,7 +1,45 @@
+from multiprocessing import Pool
 import numpy as np
 from tetra.ksample import OptimizeGs, MakeEks
 from tetra.submesh import MakeSubmesh, MakeTetra
+from tetra.fermi import _minimum_E, _maximum_E
 from tetra.numstates import _tetra_Es
+
+def DosValues_AllE(num_Es, n, Efn, R):
+    '''Return a list of D(E) values giving the density of states at energy E
+    summed over all tetrahedra and band indices; E ranges over num_Es equally
+    spaced values from the minimum energy eigenvalue to the maximum energy
+    eigenvalue.
+
+    Also returns the list of energy values used and lists of tetrahedra and
+    E(k) values so that these can be used in further calculations (such as
+    FindFermi()).
+
+    The calculation of D(E) is implemented as described in BJA94 Appendix C.
+
+    n = Brillouin zone submesh density (the total number of k-points sampled
+    is (n+1)**3).
+
+    Efn = a function E(k) which returns a list of the band energies at the
+    Brillouin zone point k, with the returned list sorted in ascending order;
+    k is expressed in the reciprocal lattice basis.
+
+    R = a numpy matrix with rows given by the reciprocal lattice vectors.
+    '''
+    # Get E(k) values and tetras.
+    tetras, Eks = _dos_setup(n, Efn, R)
+    Emin, Emax = _minimum_E(Eks), _maximum_E(Eks)
+    # Get D(E) values.
+    E_vals = np.linspace(Emin, Emax, num_Es)
+
+    dos_args, dos_vals = [], None
+    for E in E_vals:
+        dos_args.append([E, tetras, Eks])
+
+    with Pool() as pool:
+        dos_vals = pool.starmap(Dos, dos_args)
+
+    return dos_vals, E_vals, tetras, Eks
 
 def DosValues(Emin, Emax, num_Es, n, Efn, R):
     '''Return a list of D(E) values giving the density of states at energy E
