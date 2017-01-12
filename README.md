@@ -11,16 +11,11 @@ Requires scipy and numpy:
 Get setuptools and install using setup.py:
 
     sudo apt-get install python3-setuptools
-    sudo python3 setup.py install
+    python3 setup.py install --user
 
 To have changes to the source reflected immediately:
 
-    sudo python3 setup.py develop
-
-To run setup.py without root, create ~/local and add $HOME/local to $PYTHONPATH.
-Then run setup.py with:
-
-    python3 setup.py install --prefix "/home/username/local"
+    python3 setup.py develop --user
 
 # Acknowledgement
 
